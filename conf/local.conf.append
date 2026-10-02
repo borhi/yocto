@@ -19,6 +19,10 @@ DISTRO_FEATURES:remove = "ptest"
 # image yet: add docker-moby / podman / qemu etc. to IMAGE_INSTALL as needed)
 DISTRO_FEATURES:append = " virtualization"
 
+# ROS 2 Jazzy (the distro is selected by the meta-ros2-jazzy layer).
+# ros-core doesn't need Fortran; skipping it avoids rebuilding gcc with gfortran.
+ROS_WORLD_SKIP_GROUPS:append = " fortran"
+
 # Save disk space
 INHERIT += "rm_work"
 

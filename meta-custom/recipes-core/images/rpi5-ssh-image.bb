@@ -16,6 +16,7 @@ IMAGE_INSTALL = " \
     rpi-user \
     sudo \
     iproute2 \
+    ros-core \
     ${MACHINE_EXTRA_RRECOMMENDS} \
     ${@'wifi-config' if d.getVar('WIFI_SSID_HEX') else ''} \
     "

@@ -1,8 +1,9 @@
 # Custom Yocto image for Raspberry Pi 5 with SSH
 
 Minimal Linux image built with Yocto 5.0 **scarthgap** + `meta-raspberrypi`
-and `meta-virtualization` (`MACHINE = "raspberrypi5"`). The Pi boots through U-Boot, gets an IP via DHCP
-on Ethernet and/or Wi-Fi, and starts OpenSSH.
+(`MACHINE = "raspberrypi5"`), with ROS 2 Jazzy (`meta-ros`) and
+`meta-virtualization`. The Pi boots through U-Boot, gets an IP via DHCP on
+Ethernet and/or Wi-Fi, and starts OpenSSH.
 
 ## Layout
 
@@ -115,6 +116,24 @@ yet. To add some, list them in `IMAGE_INSTALL` in
 
 The Pi 5 kernel already has `CONFIG_KVM=y`, cgroups, namespaces, overlayfs,
 veth and bridge.
+
+## ROS 2
+
+The image ships **ROS 2 Jazzy** `ros-core` from `meta-ros` (layers
+`meta-ros-common`, `meta-ros2` and `meta-ros2-jazzy`): rclcpp/rclpy, the `ros2`
+CLI, launch, common interfaces and the default DDS middleware. Fortran is
+skipped (`ROS_WORLD_SKIP_GROUPS += "fortran"`), because `ros-core` doesn't need
+it and enabling it would rebuild gcc. To add more ROS packages, list them in
+`IMAGE_INSTALL`. Recipe names use dashes, e.g. `demo-nodes-cpp` for
+`demo_nodes_cpp`.
+
+Quick check on the Pi:
+
+```sh
+source /opt/ros/jazzy/setup.sh
+ros2 doctor
+ros2 topic list
+```
 
 ## Verify SSH without a Pi
 
