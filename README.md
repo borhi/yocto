@@ -1,7 +1,7 @@
 # Custom Yocto image for Raspberry Pi 5 with SSH
 
 Minimal Linux image built with Yocto 5.0 **scarthgap** + `meta-raspberrypi`
-(`MACHINE = "raspberrypi5"`). The Pi boots through U-Boot, gets an IP via DHCP
+and `meta-virtualization` (`MACHINE = "raspberrypi5"`). The Pi boots through U-Boot, gets an IP via DHCP
 on Ethernet and/or Wi-Fi, and starts OpenSSH.
 
 ## Layout
@@ -100,6 +100,21 @@ Boot chain: Pi firmware → U-Boot (`kernel_2712.img`) → `boot.scr` → Linux
 support (that arrived in 2024.04). The autoboot delay is disabled, so U-Boot
 never waits for UART input. To boot the kernel directly, remove
 `RPI_USE_U_BOOT` from `conf/local.conf.append`.
+
+## Virtualization
+
+The build includes `meta-virtualization` (plus its dependencies `meta-oe`,
+`meta-python`, `meta-networking` and `meta-filesystems`) and enables
+`DISTRO_FEATURES` `virtualization`. No virtualization packages are installed
+yet. To add some, list them in `IMAGE_INSTALL` in
+`meta-custom/recipes-core/images/rpi5-ssh-image.bb`, for example:
+
+- `docker-moby` for Docker
+- `podman` for Podman
+- `qemu` for KVM guests
+
+The Pi 5 kernel already has `CONFIG_KVM=y`, cgroups, namespaces, overlayfs,
+veth and bridge.
 
 ## Verify SSH without a Pi
 

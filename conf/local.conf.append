@@ -15,6 +15,10 @@ PARALLEL_MAKE = "-j 4"
 # native gcc into the build, which is neither needed nor fits into 8 GB RAM
 DISTRO_FEATURES:remove = "ptest"
 
+# Enable meta-virtualization's distro integration (no packages added to the
+# image yet: add docker-moby / podman / qemu etc. to IMAGE_INSTALL as needed)
+DISTRO_FEATURES:append = " virtualization"
+
 # Save disk space
 INHERIT += "rm_work"
 
