@@ -23,5 +23,13 @@ IMAGE_INSTALL = " \
 
 IMAGE_LINGUAS = ""
 
+# RPI_USER_PASSWORD_EXPIRE = "1" (PI_PASSWORD_EXPIRE in .env): mark the "pi"
+# password as expired (last change = day 0) so it must be changed on first login
+RPI_USER_PASSWORD_EXPIRE ??= "0"
+ROOTFS_POSTPROCESS_COMMAND += "${@'expire_pi_password' if d.getVar('RPI_USER_PASSWORD_EXPIRE') == '1' else ''}"
+expire_pi_password () {
+    sed -i -e 's/^\(pi:[^:]*:\)[^:]*:/\10:/' ${IMAGE_ROOTFS}${sysconfdir}/shadow
+}
+
 # Extra space in the rootfs (KiB)
 IMAGE_ROOTFS_EXTRA_SPACE = "262144"

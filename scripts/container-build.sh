@@ -16,7 +16,7 @@ clone https://github.com/ros/meta-ros.git meta-ros
 for d in poky meta-raspberrypi meta-openembedded meta-virtualization meta-ros; do echo "$d: $(git -C $d rev-parse HEAD)"; done
 
 # Let the secrets computed on the host reach BitBake
-export BB_ENV_PASSTHROUGH_ADDITIONS="RPI_USER_PASSWORD_HASH WIFI_SSID_HEX WIFI_PSK_HEX WIFI_COUNTRY"
+export BB_ENV_PASSTHROUGH_ADDITIONS="RPI_USER_PASSWORD_HASH RPI_USER_PASSWORD_EXPIRE WIFI_SSID_HEX WIFI_PSK_HEX WIFI_COUNTRY"
 
 set +u
 source poky/oe-init-build-env /work/build > /dev/null

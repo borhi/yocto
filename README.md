@@ -70,6 +70,27 @@ already configured from `.env`.
 bunzip2 -kc deploy/rpi5-ssh-image-raspberrypi5.rootfs.wic.bz2 > deploy/rpi5-yocto.img
 ```
 
+## Public image
+
+`.env.public` is a profile without personal data, meant for publishing:
+
+```sh
+ENV_FILE=.env.public OUT_DIR=deploy/public ./scripts/build.sh
+ENV_FILE=.env.public OUT_DIR=deploy/public ./scripts/verify-ssh.sh
+```
+
+| | Private (`.env` → `deploy/`) | Public (`.env.public` → `deploy/public/`) |
+|---|---|---|
+| Wi-Fi | your network | none, Ethernet only |
+| SSH key | `SSH_PUBKEY` | none (`SSH_PUBKEY=none`) |
+| `pi` password | `PI_PASSWORD` | `raspberry`, must be changed on first login (`PI_PASSWORD_EXPIRE=1`) |
+
+On first SSH login, the Pi asks for the old password and
+a new one, then closes the session. Log in again with the new password.
+
+Both profiles share one build directory, so switching profiles rebuilds only
+the user, network config and rootfs.
+
 ## Connect
 
 ```sh

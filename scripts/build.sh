@@ -3,17 +3,29 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-# Local settings and secrets (see .env.dist)
-[ -f "$ROOT/.env" ] || { echo "Missing .env: cp .env.dist .env and fill it in"; exit 1; }
-set -a; source "$ROOT/.env"; set +a
-[ -n "${PI_PASSWORD:-}" ] || { echo "PI_PASSWORD is empty in .env"; exit 1; }
+# Build profile: settings file and output dir, e.g.
+#   ENV_FILE=.env.public OUT_DIR=deploy/public ./scripts/build.sh
+ENV_FILE="${ENV_FILE:-$ROOT/.env}"
+OUT_DIR="${OUT_DIR:-$ROOT/deploy}"
+mkdir -p "$OUT_DIR"; OUT_DIR="$(cd "$OUT_DIR" && pwd)"
 
-# Public key allowed to log in as "pi"; kept out of git
+# Local settings and secrets (see .env.dist)
+[ -f "$ENV_FILE" ] || { echo "Missing $ENV_FILE: cp .env.dist .env and fill it in"; exit 1; }
+set -a; source "$ENV_FILE"; set +a
+[ -n "${PI_PASSWORD:-}" ] || { echo "PI_PASSWORD is empty in $ENV_FILE"; exit 1; }
+
+# Public key allowed to log in as "pi"; kept out of git. SSH_PUBKEY=none: no key.
 KEYS="$ROOT/meta-custom/recipes-core/rpi-user/files/authorized_keys"
 SSH_PUBKEY="${SSH_PUBKEY:-~/.ssh/id_ed25519.pub}"
-SSH_PUBKEY="${SSH_PUBKEY/#\~/$HOME}"
-[ -f "$SSH_PUBKEY" ] || { echo "No SSH public key at $SSH_PUBKEY (set SSH_PUBKEY in .env)"; exit 1; }
-cp "$SSH_PUBKEY" "$KEYS"
+if [ "$SSH_PUBKEY" = "none" ]; then
+    : > "$KEYS"
+else
+    SSH_PUBKEY="${SSH_PUBKEY/#\~/$HOME}"
+    [ -f "$SSH_PUBKEY" ] || { echo "No SSH public key at $SSH_PUBKEY (set SSH_PUBKEY in $ENV_FILE)"; exit 1; }
+    cp "$SSH_PUBKEY" "$KEYS"
+fi
+# PI_PASSWORD_EXPIRE=1: force a password change on the first login
+export RPI_USER_PASSWORD_EXPIRE="${PI_PASSWORD_EXPIRE:-0}"
 
 docker build -t yocto-builder:scarthgap "$ROOT"
 
@@ -38,10 +50,11 @@ fi
 export WIFI_SSID_HEX WIFI_PSK_HEX WIFI_COUNTRY="${WIFI_COUNTRY:-}"
 
 docker run --rm --name yocto-build \
-    -e RPI_USER_PASSWORD_HASH -e WIFI_SSID_HEX -e WIFI_PSK_HEX -e WIFI_COUNTRY \
+    -e RPI_USER_PASSWORD_HASH -e RPI_USER_PASSWORD_EXPIRE \
+    -e WIFI_SSID_HEX -e WIFI_PSK_HEX -e WIFI_COUNTRY \
     -v yocto-work:/work \
     -v "$ROOT/meta-custom":/layers/meta-custom:ro \
     -v "$ROOT/conf":/layers/conf:ro \
     -v "$ROOT/scripts":/layers/scripts:ro \
-    -v "$ROOT/deploy":/out \
+    -v "$OUT_DIR":/out \
     yocto-builder:scarthgap /layers/scripts/container-build.sh
